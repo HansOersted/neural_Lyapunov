@@ -55,13 +55,11 @@ close all
 
 N = size(dr_vec, 1);
 
-% 设置视频保存（AVI 格式，Ubuntu 兼容）
 videoFileName = 'velocity_animation.avi';
-videoWriter = VideoWriter(videoFileName, 'Motion JPEG AVI'); % Ubuntu 兼容格式
-videoWriter.FrameRate = 10; % 设置帧率
+videoWriter = VideoWriter(videoFileName, 'Motion JPEG AVI');
+videoWriter.FrameRate = 10;
 open(videoWriter);
 
-% 创建图形窗口
 figure;
 hold on;
 grid on;
@@ -73,20 +71,17 @@ h1 = animatedline('Color', 'r', 'LineWidth', 5);
 h2 = animatedline('Color', 'b', 'LineWidth', 2);
 legend({'Reference Velocity', 'Actual Velocity'}, 'Location', 'southeast');
 
-% 逐步绘制数据并保存到视频
 for i = 1:N
     addpoints(h1, dr_vec(i,1), dr_vec(i,2));
     addpoints(h2, dq_vec(i,1), dq_vec(i,2));
     drawnow;
     
-    % 捕获当前帧并写入视频
     frame = getframe(gcf);
     writeVideo(videoWriter, frame);
     
-    pause(0.1); % 调整动画速度
+    pause(0.1);
 end
 
-% 关闭视频写入
 close(videoWriter);
 
 hold off;
