@@ -22,7 +22,7 @@ Plot the tracking error, e(t).
 ## Step 2. Visualize the reference velocity and the actual velocity.
 
 
-Plot (dr1,dr2) and (dx1,dx2) diagrams.
+Plot (dr1,dr2) and (dq1,dq2) diagrams.
 
 
 https://github.com/user-attachments/assets/b4698118-6534-42a2-91a2-4a1653ebee31
