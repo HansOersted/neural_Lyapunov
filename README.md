@@ -15,13 +15,19 @@ The controller is specified below:
 
 Plot the tracking error, e(t).
 
-![image](https://github.com/user-attachments/assets/255bb0d5-d2b9-49b9-a45d-aa678e940c22)
+![image](https://github.com/user-attachments/assets/d56b807d-d17a-4efb-9bdb-8cae41c5071c)
+
 
 
 ## Step 2. Visualize the reference velocity and the actual velocity.
 
 
 Plot (dr1,dr2) and (dx1,dx2) diagrams.
+
+
+https://github.com/user-attachments/assets/b4698118-6534-42a2-91a2-4a1653ebee31
+
+
 
 
 ## Step 3. Find the Lyapunov Candidate using Neural Network.
