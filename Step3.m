@@ -36,7 +36,7 @@ end
 gamma = 0.0;
 h = 32; % Width of the hidden layer
 learning_rate = 1e-2;
-num_epochs = 1;
+num_epochs = 100;
 
 % Define NN Weights
 L1 = randn(h, dimension); % Input to hidden layer 1
@@ -49,7 +49,7 @@ L_out = randn(dimension * (dimension + 1)/2 , h); % Hidden layer to output
 b_out = zeros(dimension * (dimension + 1)/2 , 1);
 
 %% Fix Lambda
-lambda_val = 0; % Fixed lambda value
+lambda_val = 3; % Fixed lambda value
 
 %% Training Loop
 loss_history = zeros(num_epochs, 1);
@@ -113,7 +113,10 @@ for epoch = 1 : num_epochs
             
                 % Softplus gradient correction
                 softplus_derivative = 1 ./ (1 + exp(-L_pred)); % Softplus derivative
-                grad_constraint = grad_constraint .* softplus_derivative; % gradient correction
+                % grad_constraint = grad_constraint .* softplus_derivative; % gradient correction
+                % gradient correction is corrected only on the diagnal
+                grad_constraint(logical(eye(dimension))) = grad_constraint(logical(eye(dimension))) ...
+                                          .* softplus_derivative(logical(eye(dimension)));
             else
                 grad_constraint = zeros(size(L_pred));
             end
