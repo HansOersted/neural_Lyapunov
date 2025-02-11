@@ -1,0 +1,184 @@
+clear
+close all
+
+%% Simulate and Save Data
+sample_time = 0.05;
+length = 100;
+simulation_time = sample_time * length;
+
+n1 = 50; % Number of samples
+dimension = 2;
+
+for i = 1 : n1
+    initial(i).init_dq = [0.8/i; 0.5/i];
+    initial(i).init_q = [0; 0];
+    initial(i).init_dr = [1; 1];
+end
+
+for i = 1 : n1
+    init_dq = initial(i).init_dq;
+    init_q = initial(i).init_q;
+    init_dr = initial(i).init_dr;
+    
+    data_from_simulink = sim('circular_data');
+    
+    ddq_values = data_from_simulink.ddq.signals.values;
+    ddq_vec = squeeze(ddq_values)';
+
+    de_values = squeeze(data_from_simulink.de.signals.values)';
+    dde_values = squeeze(data_from_simulink.dde.signals.values)';
+
+    derivative_training_sample(i).data = de_values;
+    derivative_derivative_training_sample(i).data = dde_values;
+end
+
+%% Prepare for Training
+gamma = 0.0;
+h = 32; % Width of the hidden layer
+learning_rate = 1e-2;
+num_epochs = 1;
+
+% Define NN Weights
+L1 = randn(h, dimension); % Input to hidden layer 1
+b1 = zeros(h, 1);
+
+L2 = randn(h, h); % Hidden layer 1 to hidden layer 2
+b2 = zeros(h, 1);
+
+L_out = randn(dimension * (dimension + 1)/2 , h); % Hidden layer to output
+b_out = zeros(dimension * (dimension + 1)/2 , 1);
+
+%% Fix Lambda
+lambda_val = 0; % Fixed lambda value
+
+%% Training Loop
+loss_history = zeros(num_epochs, 1);
+A_history = [];
+L_history = [];
+constraint_history = zeros(num_epochs, 1);
+
+constraint_first_epoch = []; % Store the constraint in the first epoch (debug)
+
+for epoch = 1 : num_epochs
+    total_loss = 0;
+    currentEpochs = epoch;
+    
+    % Initialize Gradients
+    dL1 = zeros(size(L1));
+    db1 = zeros(size(b1));
+    dL2 = zeros(size(L2));
+    db2 = zeros(size(b2));
+    dL_out = zeros(size(L_out));
+    db_out = zeros(size(b_out));
+
+    for i = 1 : n1
+        for t = 1 : length
+            % Extract Current Time Step Data
+            de = derivative_training_sample(i).data(t, :)'; % Tracking error derivative
+            dde = derivative_derivative_training_sample(i).data(t, :)'; % Second derivative
+            
+            % Forward Pass (Using ReLU Instead of tanh)
+            hidden1 = max(0, L1 * de + b1); % ReLU activation
+            hidden2 = max(0, L2 * hidden1 + b2); % ReLU activation
+
+            % Construct Lower Triangular L_pred
+            L_flat = L_out * hidden2 + b_out;
+            L_pred = zeros(dimension, dimension);
+            L_pred(tril(true(dimension, dimension))) = L_flat;
+            L_pred(logical(eye(dimension))) = log(1 + exp(L_pred(logical(eye(dimension))))); % Softplus activation
+
+            % Constraint Computation
+            A = L_pred * L_pred'; % Coefficient matrix
+            constraint = dde' * A * de + de' * A * dde + lambda_val * de' * A * de + gamma;
+
+            % Store the constraint in the first epoch (debug)
+            if epoch == 1
+                constraint_first_epoch = [constraint_first_epoch, constraint];
+            end
+
+            % Loss Computation
+            constraint_violation = max(0, constraint);
+            loss = constraint_violation;
+            total_loss = total_loss + loss;
+
+            % Compute Gradient
+            if constraint_violation > 0
+                A1 = dde'; B1 = de;
+                A2 = de'; B2 = dde;
+                A3 = de'; B3 = de;
+            
+                grad_constraint = (A1' * B1' + B1 * A1) * L_pred ...
+                                + (A2' * B2' + B2 * A2) * L_pred ...
+                                + lambda_val * (A3' * B3' + B3 * A3) * L_pred;
+            
+                % Softplus gradient correction
+                softplus_derivative = 1 ./ (1 + exp(-L_pred)); % Softplus derivative
+                grad_constraint = grad_constraint .* softplus_derivative; % gradient correction
+            else
+                grad_constraint = zeros(size(L_pred));
+            end
+            
+            % Lower triangular gradient
+            grad_L_flat = grad_constraint(tril(true(dimension, dimension))); 
+            
+            % update the gradient
+            dL_out = dL_out + grad_L_flat * hidden2';
+            db_out = db_out + grad_L_flat;
+
+            % Update Hidden Layers (ReLU Derivative)
+            grad_hidden2 = (L_out' * grad_L_flat) .* (hidden2 > 0);
+            dL2 = dL2 + grad_hidden2 * hidden1';
+            db2 = db2 + grad_hidden2;
+            
+            grad_hidden1 = (L2' * grad_hidden2) .* (hidden1 > 0);
+            dL1 = dL1 + grad_hidden1 * de';
+            db1 = db1 + grad_hidden1;
+        end
+    end
+
+    % Update Weights
+    L1 = L1 - learning_rate * dL1 / (n1 * length);
+    b1 = b1 - learning_rate * db1 / (n1 * length);
+    L2 = L2 - learning_rate * dL2 / (n1 * length);
+    b2 = b2 - learning_rate * db2 / (n1 * length);
+    L_out = L_out - learning_rate * dL_out / (n1 * length);
+    b_out = b_out - learning_rate * db_out / (n1 * length);
+    
+    A_history = [A_history; A];
+    L_history = [L_history; L_pred];
+
+    
+    % Save History
+    loss_history(epoch) = total_loss;
+    constraint_history(epoch) = constraint;
+    
+    % Debugging (Optional)
+    if mod(epoch, 50) == 0
+        fprintf('Epoch %d, Loss: %.4f\n', epoch, total_loss);
+        L_pred
+        A
+    end
+end
+
+%% Plot Results
+figure;
+plot(loss_history, 'LineWidth', 2);
+xlabel('Epoch');
+ylabel('Loss');
+title('Training Loss');
+grid on;
+
+figure;
+plot(constraint_history, 'LineWidth', 2);
+xlabel('Epoch');
+ylabel('Constraint');
+title('Constraint History');
+grid on;
+
+%% **Plot First Epoch Constraints**
+figure;
+plot(1:size(constraint_first_epoch,2), constraint_first_epoch, 'LineWidth', 2);
+xlabel('Training Sample Index');
+ylabel('Constraint Value');
+title('Constraints in the First Epoch');
+grid on;
