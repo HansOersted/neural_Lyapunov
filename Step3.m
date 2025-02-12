@@ -3,7 +3,7 @@ close all
 clc
 warning on
 %% Highlight the important training parameters
-lambda_val = 1;
+lambda_val = 20;
 gamma = 1e-4;
 
 %% Simulate and Save Data
@@ -40,7 +40,7 @@ end
 %% Prepare for Training
 h = 32; % Width of the hidden layer
 learning_rate = 1e-2;
-num_epochs = 5000;
+num_epochs = 8000;
 
 % Define NN Weights
 L1 = randn(h, dimension); % Input to hidden layer 1
@@ -193,29 +193,29 @@ figure;
 plot(loss_history, 'LineWidth', 2);
 xlabel('Epoch');
 ylabel('Loss');
-title('Training Loss');
+title('Training Loss (Clean)');
 grid on;
 
-figure;
-plot(constraint_history, 'LineWidth', 2);
-xlabel('Epoch');
-ylabel('Constraint');
-title('Constraint History');
-grid on;
+% figure;
+% plot(constraint_history, 'LineWidth', 2);
+% xlabel('Epoch');
+% ylabel('Constraint');
+% title('Constraint History');
+% grid on;
 
 %% Plot First and Last Epoch Constraints
 figure;
 plot(1:size(constraint_first_epoch,2), constraint_first_epoch, 'LineWidth', 2);
 xlabel('Training Sample Index');
 ylabel('Constraint Value');
-title('Constraints in the First Epoch');
+title('Constraints in the First Epoch (Clean)');
 grid on;
 
 figure;
 plot(1:size(constraint_last_epoch,2), constraint_last_epoch, 'LineWidth', 2);
 xlabel('Training Sample Index');
 ylabel('Constraint Value');
-title('Constraints in the Last Epoch');
+title('Constraints in the Last Epoch (Clean)');
 grid on;
 
 %%
