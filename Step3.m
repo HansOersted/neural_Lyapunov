@@ -3,8 +3,9 @@ close all
 clc
 warning on
 %% Highlight the important training parameters
-lambda_val = 20;
+lambda_val = 10;
 gamma = 1e-4;
+num_epochs = 2000;
 
 %% Simulate and Save Data
 sample_time = 0.05;
@@ -40,7 +41,6 @@ end
 %% Prepare for Training
 h = 32; % Width of the hidden layer
 learning_rate = 1e-2;
-num_epochs = 8000;
 
 % Define NN Weights
 L1 = randn(h, dimension); % Input to hidden layer 1
