@@ -197,10 +197,32 @@ ylabel('Constraint');
 title('Constraint History');
 grid on;
 
-%% **Plot First Epoch Constraints**
+%% Plot First Epoch Constraints
 figure;
 plot(1:size(constraint_first_epoch,2), constraint_first_epoch, 'LineWidth', 2);
 xlabel('Training Sample Index');
 ylabel('Constraint Value');
 title('Constraints in the First Epoch');
 grid on;
+
+%%
+[de_x,de_y] = meshgrid(-20:1:20,-20:1:20);
+
+A_plot = [   0.016642931318310  -0.022849732666284;
+            -0.022849732666284   0.058887812735329  ];
+
+eig(A_plot)
+
+Lyap = zeros(size(de_x));
+
+for i = size(de_x,1):-1:1
+    for j = size(de_x,1):-1:1
+        Lyap(i,j) = [de_x(i,j)  de_y(i,j)] * A_plot * [de_x(i,j) ; de_y(i,j)];
+    end
+end
+figure
+surf(de_x,de_y,Lyap)
+xlabel('de1')
+ylabel('de2')
+zlabel('Lyapunov Function Value')
+title('Lyapunov Function (lambda = 51)')
