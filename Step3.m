@@ -74,7 +74,7 @@ for epoch = 1 : num_epochs
     db_out = zeros(size(b_out));
 
     for i = 1 : n1
-        for t = 1 : length
+        for t = 1 : (length + 1)
             % Extract Current Time Step Data
             de = derivative_training_sample(i).data(t, :)'; % Tracking error derivative
             dde = derivative_derivative_training_sample(i).data(t, :)'; % Second derivative
@@ -165,12 +165,12 @@ for epoch = 1 : num_epochs
     end
 
     % Update Weights
-    L1 = L1 - learning_rate * dL1 / (n1 * length);
-    b1 = b1 - learning_rate * db1 / (n1 * length);
-    L2 = L2 - learning_rate * dL2 / (n1 * length);
-    b2 = b2 - learning_rate * db2 / (n1 * length);
-    L_out = L_out - learning_rate * dL_out / (n1 * length);
-    b_out = b_out - learning_rate * db_out / (n1 * length);
+    L1 = L1 - learning_rate * dL1 / (n1 * (length + 1));
+    b1 = b1 - learning_rate * db1 / (n1 * (length + 1));
+    L2 = L2 - learning_rate * dL2 / (n1 * (length + 1));
+    b2 = b2 - learning_rate * db2 / (n1 * (length + 1));
+    L_out = L_out - learning_rate * dL_out / (n1 * (length + 1));
+    b_out = b_out - learning_rate * db_out / (n1 * (length + 1));
     
     A_history = [A_history; A];
     L_history = [L_history; L_pred];
