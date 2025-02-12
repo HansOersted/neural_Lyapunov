@@ -2,12 +2,16 @@ clear
 close all
 clc
 warning on
+%% Highlight the important training parameters
+lambda_val = 1;
+gamma = 1e-4;
+
 %% Simulate and Save Data
 sample_time = 0.05;
 length = 100;
 simulation_time = sample_time * length;
 
-n1 = 50; % Number of samples
+n1 = 20; % Number of samples
 dimension = 2;
 
 for i = 1 : n1
@@ -34,10 +38,9 @@ for i = 1 : n1
 end
 
 %% Prepare for Training
-gamma = 1e-4;
 h = 32; % Width of the hidden layer
 learning_rate = 1e-2;
-num_epochs = 1000;
+num_epochs = 5000;
 
 % Define NN Weights
 L1 = randn(h, dimension); % Input to hidden layer 1
@@ -49,9 +52,6 @@ b2 = zeros(h, 1);
 L_out = randn(dimension * (dimension + 1)/2 , h); % Hidden layer to output
 b_out = zeros(dimension * (dimension + 1)/2 , 1);
 
-%% Fix Lambda
-lambda_val = 51; % Fixed lambda value
-
 %% Training Loop
 loss_history = zeros(num_epochs, 1);
 A_history = [];
@@ -59,9 +59,10 @@ L_history = [];
 constraint_history = zeros(num_epochs, 1);
 
 constraint_first_epoch = []; % Store the constraint in the first epoch (debug)
+constraint_last_epoch = []; % Store the constraint in the last epoch (debug)
 
 for epoch = 1 : num_epochs
-    total_loss = 0;
+    total_loss_clean = 0;
     currentEpochs = epoch;
     
     % Initialize Gradients
@@ -109,16 +110,21 @@ for epoch = 1 : num_epochs
             %     warning('A contains values smaller than 0.00000001!');
             % end
             constraint = dde' * A * de + de' * A * dde + lambda_val * de' * A * de + gamma;
+            constraint_clean = constraint - gamma;
 
             % Store the constraint in the first epoch (debug)
             if epoch == 1
-                constraint_first_epoch = [constraint_first_epoch, constraint];
+                constraint_first_epoch = [constraint_first_epoch, constraint_clean];
+            end
+
+            if epoch == num_epochs
+                constraint_last_epoch = [constraint_last_epoch, constraint_clean];
             end
 
             % Loss Computation
             constraint_violation = max(0, constraint);
-            loss = constraint_violation;
-            total_loss = total_loss + loss;
+            loss_clean = max(0, constraint_clean);
+            total_loss_clean = total_loss_clean + loss_clean;
 
             % Compute Gradient
             if constraint_violation > 0
@@ -171,12 +177,12 @@ for epoch = 1 : num_epochs
 
     
     % Save History
-    loss_history(epoch) = total_loss;
+    loss_history(epoch) = total_loss_clean;
     constraint_history(epoch) = constraint;
     
     % Debugging (Optional)
     if mod(epoch, 50) == 0
-        fprintf('Epoch %d, Loss: %.4f\n', epoch, total_loss);
+        fprintf('Epoch %d, Loss (clean): %.4f\n', epoch, total_loss_clean);
         L_pred
         A
     end
@@ -197,12 +203,19 @@ ylabel('Constraint');
 title('Constraint History');
 grid on;
 
-%% Plot First Epoch Constraints
+%% Plot First and Last Epoch Constraints
 figure;
 plot(1:size(constraint_first_epoch,2), constraint_first_epoch, 'LineWidth', 2);
 xlabel('Training Sample Index');
 ylabel('Constraint Value');
 title('Constraints in the First Epoch');
+grid on;
+
+figure;
+plot(1:size(constraint_last_epoch,2), constraint_last_epoch, 'LineWidth', 2);
+xlabel('Training Sample Index');
+ylabel('Constraint Value');
+title('Constraints in the Last Epoch');
 grid on;
 
 %%
