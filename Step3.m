@@ -221,8 +221,8 @@ grid on;
 %%
 [de_x,de_y] = meshgrid(-20:1:20,-20:1:20);
 
-A_plot = [   0.016642931318310  -0.022849732666284;
-            -0.022849732666284   0.058887812735329  ];
+A_plot = [   0.502889373238089   0.142952513192032
+   0.142952513192032   0.562598867148055  ];
 
 eig(A_plot)
 
@@ -238,4 +238,4 @@ surf(de_x,de_y,Lyap)
 xlabel('de1')
 ylabel('de2')
 zlabel('Lyapunov Function Value')
-title('Lyapunov Function (lambda = 51)')
+title('Lyapunov Function (lambda = 10)')
