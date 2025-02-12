@@ -1,6 +1,7 @@
 clear
 close all
-
+clc
+warning on
 %% Simulate and Save Data
 sample_time = 0.05;
 length = 100;
@@ -33,10 +34,10 @@ for i = 1 : n1
 end
 
 %% Prepare for Training
-gamma = 0.0;
+gamma = 1e-4;
 h = 32; % Width of the hidden layer
 learning_rate = 1e-2;
-num_epochs = 100;
+num_epochs = 1000;
 
 % Define NN Weights
 L1 = randn(h, dimension); % Input to hidden layer 1
@@ -49,7 +50,7 @@ L_out = randn(dimension * (dimension + 1)/2 , h); % Hidden layer to output
 b_out = zeros(dimension * (dimension + 1)/2 , 1);
 
 %% Fix Lambda
-lambda_val = 3; % Fixed lambda value
+lambda_val = 51; % Fixed lambda value
 
 %% Training Loop
 loss_history = zeros(num_epochs, 1);
@@ -86,9 +87,27 @@ for epoch = 1 : num_epochs
             L_pred = zeros(dimension, dimension);
             L_pred(tril(true(dimension, dimension))) = L_flat;
             L_pred(logical(eye(dimension))) = log(1 + exp(L_pred(logical(eye(dimension))))); % Softplus activation
+            if any(isinf(L_pred), 'all')  % check if L_pred contains Inf
+                warning('L_pred contains Inf values!');
+            end
+            if any(isnan(L_pred), 'all')
+                warning('L_pred contains NaN values!');
+            end
+            % if any(L_pred < 1e-8)
+            %     warning('L_pred contains values smaller than 0.00000001!');
+            % end
 
             % Constraint Computation
             A = L_pred * L_pred'; % Coefficient matrix
+            if any(isinf(A), 'all')  % check if L_pred contains Inf
+                warning('A contains Inf values!');
+            end
+            if any(isnan(A), 'all')
+                warning('A contains NaN values!');
+            end
+            % if any(A < 1e-8)
+            %     warning('A contains values smaller than 0.00000001!');
+            % end
             constraint = dde' * A * de + de' * A * dde + lambda_val * de' * A * de + gamma;
 
             % Store the constraint in the first epoch (debug)
