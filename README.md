@@ -31,3 +31,6 @@ https://github.com/user-attachments/assets/b4698118-6534-42a2-91a2-4a1653ebee31
 
 
 ## Step 3. Find the Lyapunov Candidate using Neural Network.
+
+
+The found Lyapunov candidate has been tested for the unseen intial condition, leading to a good result with negative constraints as expected.
