@@ -3,15 +3,15 @@ close all
 clc
 warning on
 %% Highlight the important training parameters
-lambda_val = 0.1;
+lambda_val = 0.0;
 num_epochs = 2000;
-learning_rate = 1e-3;
+learning_rate = 1e-2;
 
 gamma = 1e-4;
 
 %% Parameters in the controller
-k1 = 1;
-k2 = 2;
+k1 = 10;
+k2 = 15;
 
 %% Simulate and Save Data
 sample_time = 0.05;
@@ -217,23 +217,23 @@ title('Constraints in the Last Epoch (Clean)');
 grid on;
 
 %%
-[de_x,de_y] = meshgrid(-20:1:20,-20:1:20);
+[e_x,e_y] = meshgrid(-20:1:20,-20:1:20);
 
 A_plot = [   0.0370    0.0035
     0.0035    0.2287  ];
 
 eig(A_plot)
 
-Lyap = zeros(size(de_x));
+Lyap = zeros(size(e_x));
 
-for i = size(de_x,1):-1:1
-    for j = size(de_x,1):-1:1
-        Lyap(i,j) = [de_x(i,j)  de_y(i,j)] * A_plot * [de_x(i,j) ; de_y(i,j)];
+for i = size(e_x,1):-1:1
+    for j = size(e_x,1):-1:1
+        Lyap(i,j) = [e_x(i,j)  e_y(i,j)] * A_plot * [e_x(i,j) ; e_y(i,j)];
     end
 end
 figure
-surf(de_x,de_y,Lyap)
-xlabel('de1')
-ylabel('de2')
+surf(e_x,e_y,Lyap)
+xlabel('e1')
+ylabel('e2')
 zlabel('Lyapunov Function Value')
 title('Lyapunov Function (lambda = 20)')
