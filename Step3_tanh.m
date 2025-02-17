@@ -80,9 +80,9 @@ for epoch = 1 : num_epochs
             de = derivative_training_sample(i).data(t, :)'; % Tracking error derivative
             dde = derivative_derivative_training_sample(i).data(t, :)'; % Second derivative
             
-            % Forward Pass (Using ReLU Instead of tanh)
-            hidden1 = max(0, L1 * de + b1); % ReLU activation
-            hidden2 = max(0, L2 * hidden1 + b2); % ReLU activation
+            % Forward Pass (Using tanh Instead of ReLU)
+            hidden1 = tanh(L1 * de + b1); % tanh activation
+            hidden2 = tanh(L2 * hidden1 + b2); % tanh activation
 
             % Construct Lower Triangular L_pred
             L_flat = L_out * hidden2 + b_out;
@@ -154,12 +154,14 @@ for epoch = 1 : num_epochs
             dL_out = dL_out + grad_L_flat * hidden2';
             db_out = db_out + grad_L_flat;
 
-            % Update Hidden Layers (ReLU Derivative)
-            grad_hidden2 = (L_out' * grad_L_flat) .* (hidden2 > 0);
+            % Update Hidden Layers (tanh Derivative)
+            tanh_derivative_hidden2 = 1 - hidden2.^2; % tanh'(x) = 1 - tanh^2(x)
+            grad_hidden2 = (L_out' * grad_L_flat) .* tanh_derivative_hidden2;
             dL2 = dL2 + grad_hidden2 * hidden1';
             db2 = db2 + grad_hidden2;
             
-            grad_hidden1 = (L2' * grad_hidden2) .* (hidden1 > 0);
+            tanh_derivative_hidden1 = 1 - hidden1.^2;
+            grad_hidden1 = (L2' * grad_hidden2) .* tanh_derivative_hidden1;
             dL1 = dL1 + grad_hidden1 * de';
             db1 = db1 + grad_hidden1;
         end
