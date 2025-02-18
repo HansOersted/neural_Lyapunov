@@ -3,8 +3,8 @@ close all
 clc
 warning on
 %% Highlight the important training parameters
-lambda_val = 0.5;
-num_epochs = 2000;
+lambda_val = 1.5;  % maximum record: 1.0  % not found: 1.5
+num_epochs = 600;
 learning_rate = 1e-2;
 
 gamma = 1e-4;
@@ -191,7 +191,7 @@ figure;
 plot(loss_history, 'LineWidth', 2);
 xlabel('Epoch');
 ylabel('Loss');
-title('Training Loss (Clean)');
+title('Training Loss');
 grid on;
 
 % figure;
@@ -219,10 +219,9 @@ grid on;
 %%
 [e,de] = meshgrid(-20:1:20,-20:1:20);
 
-A_plot = [   0.494232856137472   0.001333663198583
-   0.001333663198583   0.476534539442010 ];
+A_plot = A;
 
-eig(A_plot)
+eig(A)
 
 Lyap = zeros(size(e));
 
@@ -233,7 +232,8 @@ for i = size(e,1):-1:1
 end
 figure
 surf(e,de,Lyap)
-xlabel('e')
-ylabel('de')
-zlabel('Lyapunov Function Value')
-title('Lyapunov Function (lambda = 0.1)')
+xlabel('$e$', 'Interpreter', 'latex', 'FontSize', 18);
+ylabel('$\dot{e}$', 'Interpreter', 'latex', 'FontSize', 18);
+zlabel('$V(e, \dot{e})$', 'Interpreter', 'latex', 'FontSize', 16);
+title(['Lyapunov Function ($\lambda = ' num2str(lambda_val) '$)'], 'Interpreter', 'latex', 'FontSize', 16);
+
