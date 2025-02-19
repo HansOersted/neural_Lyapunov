@@ -3,7 +3,7 @@ close all
 clc
 warning on
 %% Highlight the important training parameters
-lambda_val = 2.0;  % maximum record: 1.5
+lambda_val = 1,5;  % maximum record: 1.5
 num_epochs = 600;
 learning_rate = 1e-2;
 
