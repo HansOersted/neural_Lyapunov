@@ -3,7 +3,7 @@ close all
 clc
 warning on
 %% Highlight the important training parameters
-lambda_val = 10;
+lambda_val = 1000;
 num_epochs = 2000;
 learning_rate = 1e-2;
 
@@ -38,15 +38,19 @@ dde_csv = diff(de_csv) / sample_time_csv;  % lose 1 row
 
 time_interested = time_csv(idx_init:idx_final) - time_csv(idx_init);
 
+e_interested = e_csv(idx_init:idx_final);
 de_interested = de_csv(idx_init:idx_final);
 dde_interested = dde_csv(idx_init:idx_final);
 
 n1 = 1; % The number of experiments
-dimension = 1;
+dimension = 2;
+
+E_interested = [e_interested  de_interested];
+dE_interested = [de_interested  dde_interested];
 
 for i = 1 : n1
-    derivative_training_sample(i).data = de_interested;
-    derivative_derivative_training_sample(i).data = dde_interested;
+    derivative_training_sample(i).data = E_interested;
+    derivative_derivative_training_sample(i).data = dE_interested;
 end
 
 length = size(time_interested,1);
