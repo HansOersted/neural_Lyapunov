@@ -10,11 +10,11 @@ learning_rate = 1e-2;
 gamma = 1e-4;
 
 %% Adopt csv data 
-% Start idx: 1372,  End idx: 2340
-% takes: idx_init = 1380,  idx_final = 2330
+% Start idx: 1372,  End idx: 2340 or 2266 (first phase) 
+% takes: idx_init = 1380,  idx_final = 2260
 
 idx_init = 1380;
-idx_final = 2330;
+idx_final = 2260;
 
 UR5_experiment = readtable('robot_data.csv');
 

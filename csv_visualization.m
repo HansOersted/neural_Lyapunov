@@ -2,11 +2,11 @@ clear
 clc
 close all
 
-%% Start idx: 1372,  End idx: 2340
-% takes: idx_init = 1380,  idx_final = 2330
+%% Start idx: 1372,  End idx: 2340 or 2266 (first phase) 
+% takes: idx_init = 1380,  idx_final = 2260
 
 idx_init = 1380;
-idx_final = 2330;
+idx_final = 2260;
 
 UR5_experiment = readtable('robot_data.csv');
 
@@ -25,7 +25,7 @@ e = q - q_ref;
 de = dq - dq_ref;
 
 dde = diff(de) / sample_time;  % lose 1 row
-dde = smooth(dde);
+% dde = smooth(dde);
 % time_dde = time(1:end-1);
 
 time_interested = time(idx_init:idx_final) - time(idx_init);
@@ -57,4 +57,9 @@ end
 
 hold off
 
-%%
+%% plot the entire reference acceleration
+
+figure
+plot(time, ddq_ref)
+figure
+plot(time,dq_ref)
