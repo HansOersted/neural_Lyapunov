@@ -9,36 +9,47 @@ learning_rate = 1e-2;
 
 gamma = 1e-4;
 
-%% Simulate and Save Data
-sample_time = 0.05;
-length = 100;
-simulation_time = sample_time * length;
+%% Adopt csv data 
+% Start idx: 1372,  End idx: 2340
+% takes: idx_init = 1380,  idx_final = 2330
 
-n1 = 20; % Number of samples
-dimension = 2;
+idx_init = 1380;
+idx_final = 2330;
+
+UR5_experiment = readtable('robot_data.csv');
+
+sample_time_csv = 0.002; % 500 Hz
+
+time_csv = UR5_experiment.timestamp;
+
+q_ref = UR5_experiment.target_q_0;
+dq_ref = UR5_experiment.target_qd_0;
+ddq_ref = UR5_experiment.target_qdd_0;
+
+q_actual = UR5_experiment.actual_q_0;
+dq_actual = UR5_experiment.actual_qd_0;
+
+e_csv = q_actual - q_ref;
+de_csv = dq_actual - dq_ref;
+
+dde_csv = diff(de_csv) / sample_time_csv;  % lose 1 row
+% dde_csv = smooth(dde_csv);
+% time_dde_csv = time_csv(1:end-1);
+
+time_interested = time_csv(idx_init:idx_final) - time_csv(idx_init);
+
+de_interested = de_csv(idx_init:idx_final);
+dde_interested = dde_csv(idx_init:idx_final);
+
+n1 = 1; % The number of experiments
+dimension = 1;
 
 for i = 1 : n1
-    initial(i).init_dq = [0.8/i; 0.5/i];
-    initial(i).init_q = [0; 0];
-    initial(i).init_dr = [1; 1];
+    derivative_training_sample(i).data = de_interested;
+    derivative_derivative_training_sample(i).data = dde_interested;
 end
 
-for i = 1 : n1
-    init_dq = initial(i).init_dq;
-    init_q = initial(i).init_q;
-    init_dr = initial(i).init_dr;
-    
-    data_from_simulink = sim('circular_data');
-    
-    ddq_values = data_from_simulink.ddq.signals.values;
-    ddq_vec = squeeze(ddq_values)';
-
-    de_values = squeeze(data_from_simulink.de.signals.values)';
-    dde_values = squeeze(data_from_simulink.dde.signals.values)';
-
-    derivative_training_sample(i).data = de_values;
-    derivative_derivative_training_sample(i).data = dde_values;
-end
+length = size(time_interested,1);
 
 %% Prepare for Training
 h = 32; % Width of the hidden layer
@@ -75,7 +86,7 @@ for epoch = 1 : num_epochs
     db_out = zeros(size(b_out));
 
     for i = 1 : n1
-        for t = 1 : (length + 1)
+        for t = 1 : length
             % Extract Current Time Step Data
             de = derivative_training_sample(i).data(t, :)'; % Tracking error derivative
             dde = derivative_derivative_training_sample(i).data(t, :)'; % Second derivative
@@ -166,12 +177,12 @@ for epoch = 1 : num_epochs
     end
 
     % Update Weights
-    L1 = L1 - learning_rate * dL1 / (n1 * (length + 1));
-    b1 = b1 - learning_rate * db1 / (n1 * (length + 1));
-    L2 = L2 - learning_rate * dL2 / (n1 * (length + 1));
-    b2 = b2 - learning_rate * db2 / (n1 * (length + 1));
-    L_out = L_out - learning_rate * dL_out / (n1 * (length + 1));
-    b_out = b_out - learning_rate * db_out / (n1 * (length + 1));
+    L1 = L1 - learning_rate * dL1 / (n1 * length);
+    b1 = b1 - learning_rate * db1 / (n1 * length);
+    L2 = L2 - learning_rate * dL2 / (n1 * length);
+    b2 = b2 - learning_rate * db2 / (n1 * length);
+    L_out = L_out - learning_rate * dL_out / (n1 * length);
+    b_out = b_out - learning_rate * db_out / (n1 * length);
     
     A_history = [A_history; A];
     L_history = [L_history; L_pred];
