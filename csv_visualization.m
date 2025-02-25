@@ -34,6 +34,17 @@ time_interested = time(idx_init:idx_final) - time(idx_init);
 de_interested = de(idx_init:idx_final);
 dde_interested = dde(idx_init:idx_final);
 
+%%
+figure
+subplot(2,1,1)
+plot(time-time(1),dq(:,1))
+hold on
+plot(time-time(1),dq_ref(:,1))
+legend('dq1','dq1ref')
+subplot(2,1,2)
+plot(time-time(1),dq_ref(:,1)-dq(:,1))
+ylabel('error')
+
 %% plot
 
 % only plot several points
